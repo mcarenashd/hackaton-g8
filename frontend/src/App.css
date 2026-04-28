@@ -117,8 +117,22 @@ body { font-family: var(--font-body); background: #f0f0f0; }
 
 /* ── Generated image box ── */
 .generated-img-box { background: white; border-radius: 16px; border: 0.5px solid #ddd; overflow: hidden; margin-bottom: 12px; }
-.generated-img-box img { width: 100%; display: block; }
+.generated-img-box img {
+  width: 100%;
+  display: block;
+  animation: imgFadeIn 0.6s ease-out, imgBreath 8s ease-in-out 0.6s infinite;
+  transform-origin: center;
+  will-change: transform, opacity;
+}
 .generated-img-caption { padding: 10px 14px; font-size: 11px; color: #666; border-top: 0.5px solid #eee; }
+@keyframes imgFadeIn {
+  from { opacity: 0; transform: scale(0.96); }
+  to   { opacity: 1; transform: scale(1); }
+}
+@keyframes imgBreath {
+  0%, 100% { transform: scale(1); }
+  50%      { transform: scale(1.04); }
+}
 
 /* ── Loading dots ── */
 .gen-dots { display: flex; gap: 6px; justify-content: center; margin-top: 12px; }
@@ -169,13 +183,52 @@ body { font-family: var(--font-body); background: #f0f0f0; }
 .ai-mode-pill.demo { background: #fff8e6; color: #8a6800; border: 1px solid #e0c060; }
 
 /* ── Splash hero image (sustituye .splash-droplet) ── */
-.splash-hero-img { width: 200px; height: 200px; border-radius: 24px; object-fit: cover; margin-bottom: 20px; box-shadow: 0 12px 32px rgba(0,0,0,0.25); }
+.splash-hero-img {
+  width: 200px;
+  height: 200px;
+  border-radius: 24px;
+  object-fit: cover;
+  margin-bottom: 20px;
+  box-shadow: 0 12px 32px rgba(0,0,0,0.25);
+  animation: heroFloat 4s ease-in-out infinite, heroGlow 3.5s ease-in-out infinite;
+  will-change: transform, box-shadow;
+}
+@keyframes heroFloat {
+  0%, 100% { transform: translateY(0) scale(1); }
+  50%      { transform: translateY(-8px) scale(1.015); }
+}
+@keyframes heroGlow {
+  0%, 100% { box-shadow: 0 12px 32px rgba(0,0,0,0.25), 0 0 0 0 rgba(78,203,141,0); }
+  50%      { box-shadow: 0 18px 40px rgba(0,0,0,0.32), 0 0 28px 0 rgba(78,203,141,0.35); }
+}
 
 /* ── Water-state cards (validación) ── */
 .water-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 14px; }
-.water-card { background: white; border: 1.5px solid var(--gray-border); border-radius: 14px; padding: 8px; cursor: pointer; transition: all 0.15s; text-align: center; overflow: hidden; }
-.water-card img { width: 100%; aspect-ratio: 1; object-fit: cover; border-radius: 10px; display: block; margin-bottom: 6px; }
+.water-card { background: white; border: 1.5px solid var(--gray-border); border-radius: 14px; padding: 8px; cursor: pointer; transition: transform 0.18s ease, border-color 0.18s ease, box-shadow 0.18s ease; text-align: center; overflow: hidden; }
+.water-card img { width: 100%; aspect-ratio: 1; object-fit: cover; border-radius: 10px; display: block; margin-bottom: 6px; transition: transform 0.4s ease; }
+.water-card:hover { transform: translateY(-2px); border-color: var(--green-muted); }
+.water-card:hover img { transform: scale(1.03); }
 .water-card-label { font-size: 12px; font-weight: 500; color: #333; padding-bottom: 4px; }
-.water-card.selected { border-color: var(--green-dark); box-shadow: 0 0 0 3px rgba(15,79,58,0.15); }
+.water-card.selected { border-color: var(--green-dark); box-shadow: 0 0 0 3px rgba(15,79,58,0.15); animation: cardPulse 1.6s ease-in-out infinite; }
 .water-card.selected.ok { border-color: var(--green-accent); box-shadow: 0 0 0 3px rgba(78,203,141,0.25); }
 .water-card.selected:not(.ok) { border-color: #d68a00; }
+@keyframes cardPulse {
+  0%, 100% { box-shadow: 0 0 0 3px rgba(15,79,58,0.15); }
+  50%      { box-shadow: 0 0 0 6px rgba(15,79,58,0.08); }
+}
+
+/* ── Camera zone subtle pulse ── */
+.camera-zone { animation: camGlow 2.4s ease-in-out infinite; }
+@keyframes camGlow {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(78,203,141,0); }
+  50%      { box-shadow: 0 0 0 6px rgba(78,203,141,0.12); }
+}
+
+/* ── Reduce motion accessibility ── */
+@media (prefers-reduced-motion: reduce) {
+  .splash-hero-img,
+  .generated-img-box img,
+  .water-card.selected,
+  .camera-zone { animation: none !important; }
+  .water-card:hover img { transform: none; }
+}
