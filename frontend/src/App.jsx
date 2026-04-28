@@ -11,6 +11,50 @@ const SCREENS = {
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:4000';
 
+const STEP_ORDER = [SCREENS.FORM, SCREENS.RESULT];
+const STEP_LABELS = { [SCREENS.FORM]: 'Tus recursos', [SCREENS.RESULT]: 'Tu plan' };
+
+function StepIndicator({ screen }) {
+  const currentIdx = STEP_ORDER.indexOf(screen);
+  return (
+    <ol className="mx-auto mb-8 flex max-w-md items-center justify-between gap-2">
+      {STEP_ORDER.map((s, i) => {
+        const done = i < currentIdx;
+        const active = i === currentIdx;
+        return (
+          <li key={s} className="flex flex-1 items-center gap-2">
+            <span
+              className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-sm font-semibold transition ${
+                active
+                  ? 'bg-brand-600 text-white shadow-md shadow-brand-600/30'
+                  : done
+                  ? 'bg-leaf-500 text-white'
+                  : 'bg-slate-200 text-slate-500'
+              }`}
+            >
+              {done ? '✓' : i + 1}
+            </span>
+            <span
+              className={`text-sm font-medium ${
+                active ? 'text-brand-700' : 'text-slate-500'
+              }`}
+            >
+              {STEP_LABELS[s]}
+            </span>
+            {i < STEP_ORDER.length - 1 && (
+              <span
+                className={`mx-2 h-0.5 flex-1 ${
+                  done ? 'bg-leaf-400' : 'bg-slate-200'
+                }`}
+              />
+            )}
+          </li>
+        );
+      })}
+    </ol>
+  );
+}
+
 export default function App() {
   const [screen, setScreen] = useState(SCREENS.WELCOME);
   const [plan, setPlan] = useState(null);
@@ -68,6 +112,8 @@ export default function App() {
       </header>
 
       <main className="mx-auto max-w-4xl px-6 py-10">
+        {screen !== SCREENS.WELCOME && <StepIndicator screen={screen} />}
+
         {screen === SCREENS.WELCOME && <Welcome onStart={() => setScreen(SCREENS.FORM)} />}
 
         {screen === SCREENS.FORM && (

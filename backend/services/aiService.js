@@ -7,12 +7,14 @@
  * `generatePlan` por una llamada HTTP y mapear la respuesta a este shape:
  *
  * {
- *   method: { id, title, summary },
+ *   method: { id, title, summary, difficulty },
  *   materials: string[],
  *   steps: string[],
  *   warnings: string[],
  *   alternatives: string[],
+ *   tips: string[],
  *   estimatedTimeMinutes: number,
+ *   personalizedNote: string,
  *   language: string
  * }
  */
@@ -22,7 +24,13 @@ const TEMPLATES = {
     title: 'Hervido tradicional',
     summary:
       'El método más fiable cuando dispones de fuego. Elimina virus, bacterias y parásitos.',
-    materials: ['Olla limpia', 'Fuente de calor (fuego o estufa)', 'Tela limpia para pre-filtrar'],
+    difficulty: 'fácil',
+    materials: [
+      'Olla limpia con tapa',
+      'Fuente de calor (fuego, estufa o brasero)',
+      'Tela limpia para pre-filtrar',
+      'Recipiente con tapa para almacenar',
+    ],
     steps: [
       'Pre-filtra el agua a través de una tela limpia para retirar sedimentos visibles.',
       'Vierte el agua en una olla limpia, sin llenarla del todo.',
@@ -40,6 +48,11 @@ const TEMPLATES = {
       'Si no tienes olla, puedes usar una lata metálica resistente.',
       'Si te falta combustible, considera el método SODIS (sol + botella PET).',
     ],
+    tips: [
+      'Almacena el agua hervida en un recipiente cerrado para evitar recontaminación.',
+      'Si el agua tiene mal sabor tras hervir, trasvásala entre dos recipientes para airearla.',
+      'Aprovecha el mismo fuego para hervir varias tandas seguidas.',
+    ],
     estimatedTimeMinutes: 30,
   },
 
@@ -47,12 +60,17 @@ const TEMPLATES = {
     title: 'SODIS — Desinfección solar',
     summary:
       'Usa la radiación UV del sol para inactivar microorganismos. Eficaz si hay sol directo durante 6 h.',
-    materials: ['Botellas PET transparentes (≤ 2 L)', 'Tela limpia', 'Superficie reflectante (opcional)'],
+    difficulty: 'fácil',
+    materials: [
+      'Botellas PET transparentes (≤ 2 L)',
+      'Tela limpia',
+      'Superficie reflectante (chapa, papel aluminio)',
+    ],
     steps: [
       'Filtra el agua con tela limpia para que sea lo más transparente posible.',
       'Llena las botellas PET hasta 3/4 y agítalas 20 segundos para oxigenar.',
       'Termina de llenar las botellas y ciérralas.',
-      'Colócalas en posición horizontal, expuestas al sol directo, sobre una superficie clara o metálica.',
+      'Colócalas en horizontal, expuestas al sol directo, sobre una superficie clara o metálica.',
       'Espera al menos 6 horas con sol fuerte (2 días si está nublado).',
       'Bebe directamente de la botella o trasvasa a recipiente limpio.',
     ],
@@ -65,6 +83,11 @@ const TEMPLATES = {
       'Si está muy nublado, complementa con cloración (2 gotas de lejía sin perfume por litro).',
       'Si tienes fuego, prefiere hervir: es más rápido y seguro.',
     ],
+    tips: [
+      'Marca la fecha y hora en cada botella para llevar control de exposición.',
+      'En zonas frías, una superficie negra debajo de la botella aumenta la eficacia.',
+      'Reutiliza solo botellas en buen estado: cámbialas cada 6 meses si se opacan.',
+    ],
     estimatedTimeMinutes: 360,
   },
 
@@ -72,6 +95,7 @@ const TEMPLATES = {
     title: 'Filtro casero de carbón, arena y grava',
     summary:
       'Filtra sedimentos, parte de los químicos y mejora sabor/olor. NO elimina virus por sí solo.',
+    difficulty: 'media',
     materials: [
       'Botella PET de 2 L cortada por la base',
       'Tela limpia o algodón',
@@ -99,6 +123,11 @@ const TEMPLATES = {
       'Si no tienes carbón, omite esa capa pero dobla el filtrado y añade cloración.',
       'Si no tienes arena, una tela densa puede sustituir parcialmente.',
     ],
+    tips: [
+      'Cambia el carbón cada 1-2 semanas según uso: empieza a oler raro cuando se satura.',
+      'Las primeras tandas pueden salir oscuras: descártalas hasta que el agua salga clara.',
+      'Etiqueta el filtro con la fecha de montaje.',
+    ],
     estimatedTimeMinutes: 45,
   },
 
@@ -106,8 +135,9 @@ const TEMPLATES = {
     title: 'Cloración con lejía doméstica',
     summary:
       'Desinfección química rápida y barata. Elimina la mayoría de bacterias y virus.',
+    difficulty: 'fácil',
     materials: [
-      'Lejía sin perfume ni aditivos (4–6 % de hipoclorito de sodio)',
+      'Lejía sin perfume ni aditivos (4-6 % de hipoclorito de sodio)',
       'Recipiente limpio con tapa',
       'Tela limpia para pre-filtrar',
       'Cuentagotas o jeringa pequeña',
@@ -128,6 +158,11 @@ const TEMPLATES = {
       'Si no tienes lejía, usa pastillas potabilizadoras siguiendo el dosaje del envase.',
       'Si tienes fuego, hervir es más universal y seguro.',
     ],
+    tips: [
+      'Guarda la lejía en lugar fresco y oscuro: pierde eficacia con el tiempo.',
+      'Si el frasco lleva más de un año abierto, dobla la dosis o cambia de método.',
+      'Una jeringa de 1 ml es mucho más precisa que un cuentagotas casero.',
+    ],
     estimatedTimeMinutes: 35,
   },
 
@@ -135,6 +170,7 @@ const TEMPLATES = {
     title: 'Destilación solar de emergencia',
     summary:
       'Último recurso si solo tienes sol y plástico. Produce poca agua pero muy pura.',
+    difficulty: 'avanzada',
     materials: [
       'Plástico transparente grande',
       'Recipiente limpio (vaso o lata)',
@@ -157,8 +193,23 @@ const TEMPLATES = {
     alternatives: [
       'Si dispones de cualquier otro método, prefiérelo: este es el menos eficiente.',
     ],
+    tips: [
+      'En zonas calurosas, añade hojas verdes en el fondo: liberan humedad extra.',
+      'Sella bien los bordes con tierra para que no escape el vapor.',
+    ],
     estimatedTimeMinutes: 480,
   },
+};
+
+const SOURCE_WARNINGS = {
+  rio: 'El agua de río puede arrastrar materia fecal y parásitos: el pre-filtrado es obligatorio.',
+  lago: 'Los lagos suelen tener más algas y cianobacterias: filtra y nunca confíes solo en SODIS.',
+  pozo: 'Si el pozo está cerca de letrinas o ganadería, considera contaminación química, no solo biológica.',
+  lluvia:
+    'Si recoges lluvia desde un techo, descarta los primeros minutos: arrastran polvo, excrementos de aves y plomo.',
+  grifo_dudoso:
+    'Si la red puede tener cortes, puede haber entrada de contaminantes por presión negativa: trata siempre antes de beber.',
+  otro: 'Fuente no estándar: extrema precauciones y combina al menos dos métodos.',
 };
 
 const I18N = {
@@ -168,18 +219,39 @@ const I18N = {
 };
 
 function scaleByLiters(template, dailyLiters) {
-  // Pequeño ajuste: si necesita muchos litros, añadir advertencia y materiales.
   const out = {
     ...template,
     materials: [...template.materials],
     warnings: [...template.warnings],
+    tips: [...(template.tips || [])],
   };
   if (dailyLiters >= 10) {
     out.warnings.push(
       `Necesitas ${dailyLiters} L/día: planifica varias tandas o duplica los recipientes.`
     );
   }
+  if (dailyLiters >= 20) {
+    out.tips.push('Para volúmenes grandes, considera procesar por lotes durante el día.');
+  }
   return out;
+}
+
+function buildPersonalizedNote(input) {
+  const fragments = [];
+  if (input.customMaterials?.length) {
+    fragments.push(
+      `Hemos considerado tus materiales adicionales: ${input.customMaterials.join(', ')}.`
+    );
+  }
+  if (input.customResources?.length) {
+    fragments.push(
+      `También hemos tenido en cuenta: ${input.customResources.join(', ')}.`
+    );
+  }
+  if (input.waterSource === 'otro' && input.customSource) {
+    fragments.push(`Fuente declarada: "${input.customSource}".`);
+  }
+  return fragments.join(' ');
 }
 
 async function generatePlan(input, methodId) {
@@ -190,23 +262,45 @@ async function generatePlan(input, methodId) {
   const scaled = scaleByLiters(base, input.dailyLiters);
   const lang = input.language || 'es';
 
+  // Advertencia contextual según fuente de agua.
+  const sourceWarning = SOURCE_WARNINGS[input.waterSource];
+  if (sourceWarning) scaled.warnings.unshift(sourceWarning);
+
+  // Si el usuario aportó materiales custom, los reflejamos en la lista.
+  const finalMaterials = [...scaled.materials];
+  if (input.customMaterials?.length) {
+    finalMaterials.push(
+      ...input.customMaterials.map((m) => `${m} (aportado por ti)`)
+    );
+  }
+
   return {
     method: {
       id: methodId,
       title: scaled.title,
       summary: scaled.summary,
+      difficulty: scaled.difficulty,
     },
     context: {
       waterSource: input.waterSource,
+      waterSourceLabel:
+        input.waterSource === 'otro' && input.customSource
+          ? input.customSource
+          : input.waterSource,
       dailyLiters: input.dailyLiters,
       userMaterials: input.materials,
       userResources: input.resources,
+      customMaterials: input.customMaterials || [],
+      customResources: input.customResources || [],
+      customSource: input.customSource || '',
     },
-    materials: scaled.materials,
+    materials: finalMaterials,
     steps: scaled.steps,
     warnings: scaled.warnings,
     alternatives: scaled.alternatives,
+    tips: scaled.tips,
     estimatedTimeMinutes: scaled.estimatedTimeMinutes,
+    personalizedNote: buildPersonalizedNote(input),
     language: lang,
     generatedAt: new Date().toISOString(),
     headline: I18N[lang]?.fallback || I18N.es.fallback,

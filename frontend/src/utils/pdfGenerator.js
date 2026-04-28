@@ -4,6 +4,15 @@ const MARGIN_X = 15;
 const PAGE_WIDTH = 210; // A4 mm
 const CONTENT_WIDTH = PAGE_WIDTH - MARGIN_X * 2;
 
+const SOURCE_LABELS = {
+  rio: 'Río o arroyo',
+  lago: 'Lago o laguna',
+  pozo: 'Pozo',
+  lluvia: 'Agua de lluvia',
+  grifo_dudoso: 'Grifo no fiable',
+  otro: 'Otra fuente',
+};
+
 /**
  * Genera y descarga un PDF con el plan de potabilización.
  * Usa jsPDF (sin dependencias extra) para mantenerlo low-cost.
@@ -39,14 +48,35 @@ export function downloadPlanPDF(plan) {
 
   y = 22;
   writeWrapped(plan.method.title, { size: 18, bold: true, color: [30, 80, 90], gap: 2 });
-  writeWrapped(plan.method.summary, { size: 11, color: [80, 80, 80], gap: 6 });
+  writeWrapped(plan.method.summary, { size: 11, color: [80, 80, 80], gap: 4 });
+
+  if (plan.method.difficulty) {
+    writeWrapped(`Dificultad: ${plan.method.difficulty}`, {
+      size: 11,
+      bold: true,
+      color: [40, 125, 138],
+      gap: 4,
+    });
+  }
 
   // Contexto
   writeWrapped('Contexto', { size: 13, bold: true, color: [40, 125, 138] });
+  const sourceText =
+    plan.context.waterSource === 'otro' && plan.context.customSource
+      ? `Otra: ${plan.context.customSource}`
+      : SOURCE_LABELS[plan.context.waterSource] || plan.context.waterSource;
   writeWrapped(
-    `Fuente de agua: ${plan.context.waterSource} • Litros/día: ${plan.context.dailyLiters} • Tiempo estimado: ${plan.estimatedTimeMinutes} min`,
+    `Fuente: ${sourceText} • Litros/día: ${plan.context.dailyLiters} • Tiempo estimado: ${plan.estimatedTimeMinutes} min`,
     { size: 11 }
   );
+
+  if (plan.personalizedNote) {
+    writeWrapped(`Personalizado: ${plan.personalizedNote}`, {
+      size: 11,
+      color: [40, 100, 110],
+      gap: 6,
+    });
+  }
 
   // Materiales
   writeWrapped('Materiales necesarios', { size: 13, bold: true, color: [40, 125, 138] });
@@ -70,6 +100,15 @@ export function downloadPlanPDF(plan) {
     writeWrapped('Alternativas', { size: 13, bold: true, color: [44, 126, 63] });
     plan.alternatives.forEach((a) =>
       writeWrapped(`→ ${a}`, { size: 11, color: [50, 90, 60], gap: 1 })
+    );
+    y += 4;
+  }
+
+  // Tips
+  if (plan.tips?.length) {
+    writeWrapped('Tips útiles', { size: 13, bold: true, color: [44, 126, 63] });
+    plan.tips.forEach((t) =>
+      writeWrapped(`💡 ${t}`, { size: 11, color: [50, 90, 60], gap: 1 })
     );
   }
 

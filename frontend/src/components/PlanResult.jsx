@@ -1,8 +1,23 @@
 import { downloadPlanPDF } from '../utils/pdfGenerator.js';
 
+const SOURCE_LABELS = {
+  rio: 'Río o arroyo',
+  lago: 'Lago o laguna',
+  pozo: 'Pozo',
+  lluvia: 'Agua de lluvia',
+  grifo_dudoso: 'Grifo no fiable',
+  otro: 'Otra fuente',
+};
+
+const DIFFICULTY_STYLES = {
+  fácil: 'bg-leaf-100 text-leaf-800',
+  media: 'bg-amber-100 text-amber-800',
+  avanzada: 'bg-rose-100 text-rose-800',
+};
+
 function Section({ title, icon, children }) {
   return (
-    <section className="mt-6">
+    <section className="mt-8">
       <h3 className="flex items-center gap-2 text-xl">
         <span aria-hidden>{icon}</span>
         {title}
@@ -12,6 +27,12 @@ function Section({ title, icon, children }) {
   );
 }
 
+function formatTime(min) {
+  if (min < 60) return `${min} min`;
+  const h = Math.round((min / 60) * 10) / 10;
+  return `${h} h`;
+}
+
 export default function PlanResult({ plan, onRestart }) {
   const {
     method,
@@ -19,14 +40,24 @@ export default function PlanResult({ plan, onRestart }) {
     steps,
     warnings,
     alternatives,
+    tips = [],
     estimatedTimeMinutes,
     headline,
     context,
+    personalizedNote,
   } = plan;
 
   function handleDownload() {
     downloadPlanPDF(plan);
   }
+
+  const sourceLabel =
+    context.waterSource === 'otro' && context.customSource
+      ? `Otra: ${context.customSource}`
+      : SOURCE_LABELS[context.waterSource] || context.waterSource;
+
+  const difficultyClass =
+    DIFFICULTY_STYLES[method.difficulty] || 'bg-slate-100 text-slate-800';
 
   return (
     <article className="mx-auto max-w-3xl">
@@ -36,10 +67,24 @@ export default function PlanResult({ plan, onRestart }) {
         <p className="mt-3 text-lg leading-relaxed text-slate-700">{method.summary}</p>
 
         <div className="mt-4 flex flex-wrap gap-2">
-          <span className="pill">⏱ ~{estimatedTimeMinutes} min</span>
+          <span className="pill">⏱ ~{formatTime(estimatedTimeMinutes)}</span>
           <span className="pill">💧 {context.dailyLiters} L/día</span>
-          <span className="pill">📍 Fuente: {context.waterSource}</span>
+          <span className="pill">📍 {sourceLabel}</span>
+          {method.difficulty && (
+            <span
+              className={`inline-flex items-center rounded-full px-3 py-1 text-sm font-medium ${difficultyClass}`}
+            >
+              🎯 Dificultad: {method.difficulty}
+            </span>
+          )}
         </div>
+
+        {personalizedNote && (
+          <div className="mt-6 rounded-xl border border-brand-200 bg-brand-50/70 px-4 py-3 text-sm text-brand-900">
+            <span className="font-semibold">Personalizado para ti — </span>
+            {personalizedNote}
+          </div>
+        )}
 
         <Section title="Materiales necesarios" icon="🧰">
           <ul className="grid list-disc gap-1 pl-5 sm:grid-cols-2">
@@ -80,6 +125,21 @@ export default function PlanResult({ plan, onRestart }) {
             <ul className="list-disc space-y-1 pl-5">
               {alternatives.map((a, i) => (
                 <li key={i}>{a}</li>
+              ))}
+            </ul>
+          </Section>
+        )}
+
+        {tips.length > 0 && (
+          <Section title="Tips útiles" icon="💡">
+            <ul className="grid gap-2 sm:grid-cols-2">
+              {tips.map((t, i) => (
+                <li
+                  key={i}
+                  className="rounded-lg border border-leaf-200 bg-leaf-50 px-4 py-3 text-sm text-leaf-900"
+                >
+                  {t}
+                </li>
               ))}
             </ul>
           </Section>
