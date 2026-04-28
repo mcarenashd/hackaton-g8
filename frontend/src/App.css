@@ -1227,24 +1227,26 @@ input.field, textarea.field { display: block; }
 
 /* Splash hero image (DALL-E) */
 .splash-droplet-wrap {
-  display: flex;
+  display: flex !important;
   flex-direction: column;
   align-items: center;
+  justify-content: center;
+  margin: 0 !important;
 }
 .splash-droplet-wrap img.hero {
-  width: 220px; height: 220px;
-  border-radius: 28px;
+  width: 180px; height: 180px;
+  border-radius: 24px;
   object-fit: cover;
   box-shadow:
-    0 0 80px rgba(46, 174, 200, 0.4),
-    0 24px 48px rgba(0, 0, 0, 0.45);
+    0 0 60px rgba(46, 174, 200, 0.35),
+    0 20px 40px rgba(0, 0, 0, 0.40);
   animation: heroFloat 4s ease-in-out infinite;
 }
 .splash-droplet-wrap .hero-credit {
-  margin-top: 14px;
+  margin-top: 10px;
   font-family: var(--font-mono);
-  font-size: 9.5px;
-  letter-spacing: 0.12em;
+  font-size: 9px;
+  letter-spacing: 0.10em;
   text-transform: uppercase;
   color: rgba(255,255,255,0.45);
   display: inline-flex;
@@ -1255,6 +1257,12 @@ input.field, textarea.field { display: block; }
   0%, 100% { transform: translateY(0); }
   50%      { transform: translateY(-6px); }
 }
+
+/* Splash compactado para que el botón siempre se vea + safety scroll */
+.splash { overflow-y: auto; }
+.splash .splash-title { font-size: 48px !important; margin-bottom: 10px !important; }
+.splash .splash-tagline { font-size: 14px !important; margin-bottom: 16px !important; }
+.splash .sdg-pills { margin-bottom: 16px !important; }
 
 /* Cámara con input file oculto */
 .camera-card input[type="file"] { display: none; }
