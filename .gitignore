@@ -12,3 +12,9 @@ coverage/
 # Carpeta local de trabajo con imágenes sin renombrar (Designer.png, etc).
 # Las versiones definitivas viven en frontend/public/images/.
 frontend/images/
+
+# Prototipos / referencias de diseño (no son código de la app)
+v2/
+aquaguia/
+files/
+Hackaton.zip

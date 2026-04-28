@@ -1,59 +1,83 @@
 import { useState } from 'react';
-import { StatusBar, Header, ProgressBar } from '../components/PhoneShell';
+import {
+  StatusBar,
+  AppHeader,
+  Progress,
+  EmojiTile,
+  CopilotMark,
+} from '../components/PhoneShell';
 
 const ESTADOS = [
-  { id: 'clara', img: '/images/water-states/clara.png', label: 'Clara y limpia', ok: true },
-  { id: 'turbia', img: '/images/water-states/turbia.png', label: 'Turbia', ok: false },
-  { id: 'coloreada', img: '/images/water-states/coloreada.png', label: 'Con color', ok: false },
-  { id: 'olorosa', img: '/images/water-states/olorosa.png', label: 'Con olor', ok: false },
+  { id: 'clara', image: '/images/water-states/clara.png', label: 'Clara y limpia', ok: true },
+  { id: 'turbia', image: '/images/water-states/turbia.png', label: 'Turbia', ok: false },
+  { id: 'coloreada', image: '/images/water-states/coloreada.png', label: 'Con color', ok: false },
+  { id: 'olorosa', image: '/images/water-states/olorosa.png', label: 'Con olor', ok: false },
 ];
 
 export default function ScreenValidacion({ onNext, onBack }) {
-  const [selected, setSelected] = useState(null);
-  const selOk = selected !== null && ESTADOS[selected].ok;
+  const [sel, setSel] = useState(null);
+  const ok = sel !== null && ESTADOS[sel].ok;
 
   return (
     <>
       <StatusBar />
-      <Header title="¿Cómo quedó el agua?" step="Paso 4 de 4 · Validación" onBack={onBack} />
-      <ProgressBar current={4} total={4} />
-      <div className="screen-body">
-        <div className="section-label">Compara con tu agua</div>
-        <p style={{ fontSize: 12, color: '#555', marginBottom: 12, lineHeight: 1.5 }}>
-          Toca la imagen que más se parezca a tu resultado.
-        </p>
+      <AppHeader
+        eyebrow="Paso 4 · Validación"
+        title='¿Cómo quedó <em>el agua</em>?'
+        onBack={onBack}
+      />
+      <Progress current={4} total={4} />
+      <div className="screen">
+        <div className="section-label">
+          <span className="lbl">📷 Verificación con foto</span>
+          <span className="hint">opcional</span>
+        </div>
+        <div className="photo-drop">
+          <div className="ph-icon" style={{ fontSize: 22 }}>📷</div>
+          <div className="body-m" style={{ fontWeight: 500 }}>
+            Fotografía el resultado
+          </div>
+          <div className="body-s">
+            <CopilotMark size={10} /> &nbsp;Copilot Vision compara turbidez
+          </div>
+        </div>
 
-        <div className="water-grid">
+        <div className="divider-or">o compara con estas referencias</div>
+
+        <div className="tiles">
           {ESTADOS.map((e, i) => (
-            <div
+            <EmojiTile
               key={e.id}
-              className={`water-card${selected === i ? ' selected' : ''}${e.ok ? ' ok' : ''}`}
-              onClick={() => setSelected(i)}
-            >
-              <img src={e.img} alt={e.label} />
-              <div className="water-card-label">{e.label}</div>
-            </div>
+              image={e.image}
+              label={e.label}
+              selected={sel === i}
+              onClick={() => setSel(i)}
+            />
           ))}
         </div>
 
-        {selOk && (
-          <div className="result-ok" style={{ display: 'flex' }}>
-            <span style={{ fontSize: 22 }}>✅</span>
-            <span style={{ fontSize: 13, color: '#0f4f3a', fontWeight: 500 }}>
-              ¡Perfecto! Tu agua está lista para consumir.
-            </span>
+        {ok && (
+          <div className="result-ok">
+            <div className="check-circle">✓</div>
+            <div>
+              <div className="r-title">Agua segura para beber 💧</div>
+              <div className="r-sub">
+                Consume en 24 h o refrigera. Repite el proceso para cada lote.
+              </div>
+            </div>
           </div>
         )}
-        {selected !== null && !selOk && (
-          <div className="warning-badge">
-            <span>⚠️</span>
-            <span className="w-text">
-              Repite el proceso o añade un paso de desinfección adicional.
+        {sel !== null && !ok && (
+          <div className="note warn">
+            <span className="icon">⚠️</span>
+            <span className="txt">
+              Repite el proceso o añade cloro (2 gotas/L, esperar 30 min).
             </span>
           </div>
         )}
 
-        <button className="btn-primary" onClick={onNext} disabled={selected === null}>
+        <div className="spacer-16" />
+        <button className="btn btn-primary" onClick={onNext} disabled={sel === null}>
           Ver kit mínimo →
         </button>
       </div>

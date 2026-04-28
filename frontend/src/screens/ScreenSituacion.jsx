@@ -1,95 +1,106 @@
-import { StatusBar, Header, ProgressBar } from '../components/PhoneShell';
+import { StatusBar, AppHeader, Progress, EmojiTile } from '../components/PhoneShell';
 
-const AGUA_OPTIONS = [
-  { icon: '🌊', label: 'Río o arroyo' },
-  { icon: '🌧️', label: 'Agua de lluvia' },
-  { icon: '🪣', label: 'Pozo' },
-  { icon: '🚰', label: 'Grifo dudoso' },
-  { icon: '🏞️', label: 'Lago / laguna' },
-  { icon: '❓', label: 'Otra (la describo)' },
+const AGUA = [
+  { id: 'rio', emoji: '🌊', label: 'Río o arroyo' },
+  { id: 'lluvia', emoji: '🌧️', label: 'Agua de lluvia' },
+  { id: 'pozo', emoji: '🪣', label: 'Pozo' },
+  { id: 'grifo', emoji: '🚰', label: 'Grifo dudoso' },
+  { id: 'lago', emoji: '🏞️', label: 'Lago / laguna' },
+  { id: 'otra', emoji: '❓', label: 'Otra (la describo)' },
 ];
-const URGENCIA_OPTIONS = [
-  { icon: '🆘', label: 'Ahora mismo' },
-  { icon: '⏳', label: 'Tengo tiempo' },
+const URGENCIA = [
+  { id: 'ahora', emoji: '🆘', label: 'Ahora mismo' },
+  { id: 'tiempo', emoji: '⏳', label: 'Tengo tiempo' },
 ];
-const PERSONAS_OPTIONS = [
-  { icon: '👤', label: '1–2 personas' },
-  { icon: '👨‍👩‍👧', label: 'Familia' },
-  { icon: '🏘️', label: 'Comunidad' },
-  { icon: '🏫', label: 'Escuela' },
+const PERSONAS = [
+  { id: '1-2', emoji: '👤', label: '1–2 personas' },
+  { id: 'fam', emoji: '👨‍👩‍👧', label: 'Familia' },
+  { id: 'com', emoji: '🏘️', label: 'Comunidad' },
+  { id: 'esc', emoji: '🏫', label: 'Escuela' },
 ];
-
-function ChoiceGroup({ options, value, onChange }) {
-  return (
-    <div className="choice-row">
-      {options.map((opt) => (
-        <div
-          key={opt.label}
-          className={`choice-btn${value === opt.label ? ' selected' : ''}`}
-          onClick={() => onChange(opt.label)}
-        >
-          <span className="icon">{opt.icon}</span>
-          {opt.label}
-        </div>
-      ))}
-    </div>
-  );
-}
 
 export default function ScreenSituacion({ value, onChange, onNext, onBack }) {
   const isOtra = value.agua === 'Otra (la describo)';
   const customOk = !isOtra || (value.customAgua && value.customAgua.trim().length >= 3);
-  const isValid = value.agua && value.urgencia && value.personas && customOk;
+  const ready = value.agua && value.urgencia && value.personas && customOk;
 
   return (
     <>
       <StatusBar />
-      <Header showLogo title="" step="Paso 1 de 4 · Tu situación" onBack={onBack} />
-      <ProgressBar current={1} total={4} />
-      <div className="screen-body">
-        <div className="section-label">Tipo de agua</div>
-        <ChoiceGroup
-          options={AGUA_OPTIONS}
-          value={value.agua}
-          onChange={(v) => onChange({ ...value, agua: v })}
-        />
+      <AppHeader
+        eyebrow="Paso 1 · Tu situación"
+        title='¿Qué <em>agua</em><br/>vas a tratar?'
+        onBack={onBack}
+      />
+      <Progress current={1} total={4} />
+      <div className="screen">
+        <div className="section-label">
+          <span className="lbl">💧 Fuente del agua</span>
+          <span className="hint">elige una</span>
+        </div>
+        <div className="tiles">
+          {AGUA.map((o) => (
+            <EmojiTile
+              key={o.id}
+              emoji={o.emoji}
+              label={o.label}
+              selected={value.agua === o.label}
+              onClick={() => onChange({ ...value, agua: o.label })}
+            />
+          ))}
+        </div>
 
         {isOtra && (
           <input
             type="text"
-            className="text-input"
+            className="field"
             placeholder="Ej: aljibe, manantial, cisterna comunitaria…"
             value={value.customAgua || ''}
             onChange={(e) => onChange({ ...value, customAgua: e.target.value })}
             maxLength={120}
+            style={{ marginTop: 8 }}
           />
         )}
 
-        <div className="section-label" style={{ marginTop: 4 }}>
-          Urgencia
+        <div className="section-label">
+          <span className="lbl">⏰ Urgencia</span>
         </div>
-        <ChoiceGroup
-          options={URGENCIA_OPTIONS}
-          value={value.urgencia}
-          onChange={(v) => onChange({ ...value, urgencia: v })}
-        />
-        <div className="section-label" style={{ marginTop: 4 }}>
-          ¿Cuántas personas?
+        <div className="tiles">
+          {URGENCIA.map((o) => (
+            <EmojiTile
+              key={o.id}
+              emoji={o.emoji}
+              label={o.label}
+              selected={value.urgencia === o.label}
+              onClick={() => onChange({ ...value, urgencia: o.label })}
+            />
+          ))}
         </div>
-        <ChoiceGroup
-          options={PERSONAS_OPTIONS}
-          value={value.personas}
-          onChange={(v) => onChange({ ...value, personas: v })}
-        />
 
-        <button className="btn-primary" onClick={onNext} disabled={!isValid}>
+        <div className="section-label">
+          <span className="lbl">👥 ¿Para cuántas personas?</span>
+        </div>
+        <div className="tiles">
+          {PERSONAS.map((o) => (
+            <EmojiTile
+              key={o.id}
+              emoji={o.emoji}
+              label={o.label}
+              selected={value.personas === o.label}
+              onClick={() => onChange({ ...value, personas: o.label })}
+            />
+          ))}
+        </div>
+
+        <div className="spacer-16" />
+        <button className="btn btn-primary" onClick={onNext} disabled={!ready}>
           Continuar →
         </button>
-        {!isValid && (
+        {!ready && (
           <div className="hint-text">
             {isOtra && !customOk
-              ? '↑ Describe brevemente la fuente "Otra".'
-              : 'Marca una opción de cada grupo para continuar.'}
+              ? '↑ Describe brevemente la fuente "Otra"'
+              : 'Elige una opción de cada grupo'}
           </div>
         )}
       </div>
