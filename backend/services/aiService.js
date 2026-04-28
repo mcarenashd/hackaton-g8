@@ -21,6 +21,8 @@
  */
 const { buildConsiderations } = require('../utils/customResources');
 const azure = require('./azureOpenAI');
+const { applyContextVariations, integrateCustomResources } = require('./contextVariations');
+const { tryGenerateLlmPlan } = require('./llmPlanGenerator');
 
 const TEMPLATES = {
   ebullicion: {
@@ -258,93 +260,111 @@ function buildPersonalizedNote(input) {
 }
 
 /**
- * Convierte un paso (string) en `{title, text, time}` para que el frontend
- * pueda mostrarlo como tarjeta. El título es la primera frase corta; el
- * texto es el resto; el tiempo se extrae con regex si aparece.
+ * Convierte un paso en `{title, text, time}` para las cards del frontend.
+ * Si ya viene como objeto (caso LLM), se respeta tal cual.
  */
 function structureStep(s) {
-  const timeMatch = s.match(/(\d+\s*(?:min|minutos?|hs?|horas?|días?)\b)/i);
+  if (s && typeof s === 'object' && (s.title || s.text)) {
+    return {
+      title: String(s.title || '').slice(0, 100).trim(),
+      text: String(s.text || '').slice(0, 350).trim(),
+      time: String(s.time || '').slice(0, 30).trim(),
+    };
+  }
+  const str = String(s || '');
+  const timeMatch = str.match(/(\d+\s*(?:min|minutos?|hs?|horas?|días?)\b)/i);
   const time = timeMatch ? timeMatch[1] : '';
-  const firstDot = s.indexOf('.');
+  const firstDot = str.indexOf('.');
   let title, text;
   if (firstDot > 0 && firstDot < 70) {
-    title = s.slice(0, firstDot).trim();
-    text = s.slice(firstDot + 1).trim();
-  } else if (s.length <= 50) {
-    title = s.trim();
+    title = str.slice(0, firstDot).trim();
+    text = str.slice(firstDot + 1).trim();
+  } else if (str.length <= 50) {
+    title = str.trim();
     text = '';
   } else {
-    title = s.slice(0, 50).trim() + '…';
-    text = s;
+    title = str.slice(0, 50).trim() + '…';
+    text = str;
   }
   return { title, text, time };
 }
 
-/**
- * Si hay key de Azure OpenAI, pide a GPT-4o que adapte el `summary` al
- * contexto del usuario (urgencia, nº personas). Si falla, mantenemos
- * el del template — la seguridad de los pasos NO se delega al LLM.
- */
-async function personalizeSummary(scaled, input) {
-  if (!azure.isConfigured()) return scaled.summary;
-  const sit = input.situacion || {};
-  try {
-    const out = await azure.chat({
-      system:
-        'Eres AquaGuía, un asistente de potabilización para comunidades vulnerables. ' +
-        'Hablas español muy claro, frases simples, sin tecnicismos. Nunca inventes pasos ni cifras de seguridad.',
-      user:
-        `Adapta este resumen al contexto del usuario, en UNA sola frase corta y directa, sin intro ni cierre.\n\n` +
-        `Método: ${scaled.title}\n` +
-        `Resumen base: ${scaled.summary}\n` +
-        `Contexto: ${sit.personas || 'persona'}, urgencia "${sit.urgencia || 'normal'}", ` +
-        `fuente "${input.customSource || input.waterSource}".`,
-      maxTokens: 120,
-    });
-    if (out && out.trim().length > 10) return out.trim().replace(/^"|"$/g, '');
-  } catch (err) {
-    console.warn('[aiService] Azure personalization failed:', err.message);
-  }
-  return scaled.summary;
-}
-
 async function generatePlan(input, methodId) {
-  // Pequeña latencia para que el spinner se vea natural.
-  await new Promise((r) => setTimeout(r, 250));
+  await new Promise((r) => setTimeout(r, 200));
 
   const base = TEMPLATES[methodId] || TEMPLATES.filtro_carbon;
-  const scaled = scaleByLiters(base, input.dailyLiters);
+  let scaled = scaleByLiters(base, input.dailyLiters);
   const lang = input.language || 'es';
 
   // Advertencia contextual según fuente de agua.
   const sourceWarning = SOURCE_WARNINGS[input.waterSource];
   if (sourceWarning) scaled.warnings.unshift(sourceWarning);
 
-  // Materiales aportados por el usuario marcados explícitamente.
+  // 1) Aplicar variaciones de contexto (situación, fuente, escala).
+  scaled = applyContextVariations(scaled, input);
+
+  // 2) Integrar recursos custom directamente en pasos donde encajen.
+  const { steps: stepsWithIntegrations, integratedItems } = integrateCustomResources(
+    scaled.steps,
+    input.customMaterials || [],
+    methodId
+  );
+  scaled.steps = stepsWithIntegrations;
+
+  // Materiales aportados por el usuario.
   const finalMaterials = [...scaled.materials];
   if (input.customMaterials?.length) {
-    finalMaterials.push(
-      ...input.customMaterials.map((m) => `${m} (aportado por ti)`)
+    finalMaterials.push(...input.customMaterials.map((m) => `${m} (aportado por ti)`));
+  }
+
+  // 3) Si hay Azure, intentar plan completo personalizado por GPT-4o.
+  let llmPlan = null;
+  let aiSource = 'template';
+  try {
+    llmPlan = await tryGenerateLlmPlan(methodId, input);
+    if (llmPlan) aiSource = 'azure-gpt4o';
+  } catch (err) {
+    console.warn('[aiService] LLM plan generation error:', err.message);
+  }
+
+  // Si LLM dio un plan válido, sus pasos sustituyen a los del template;
+  // sus warnings/tips/customAdvice se MEZCLAN con los del template para
+  // no perder los basados en plantilla validada.
+  const finalSteps = (llmPlan?.steps?.length
+    ? llmPlan.steps
+    : scaled.steps
+  ).map(structureStep);
+
+  const finalWarnings = llmPlan?.warnings?.length
+    ? Array.from(new Set([...scaled.warnings.slice(0, 1), ...llmPlan.warnings])).slice(0, 6)
+    : scaled.warnings;
+
+  const finalTips = llmPlan?.tips?.length
+    ? Array.from(new Set([...llmPlan.tips, ...(scaled.tips || [])])).slice(0, 6)
+    : scaled.tips;
+
+  // Considerations: si hay LLM las usamos; si no, las del keyword matcher
+  // (filtrando las que ya están integradas inline para no duplicar).
+  let customConsiderations;
+  if (llmPlan?.customAdvice?.length) {
+    customConsiderations = llmPlan.customAdvice;
+  } else {
+    const keywordBased = buildConsiderations({
+      customMaterials: input.customMaterials || [],
+      customResources: input.customResources || [],
+    });
+    customConsiderations = keywordBased.filter(
+      (c) => !integratedItems.some((it) => c.includes(`"${it}"`))
     );
   }
 
-  // Consejos específicos por cada item custom.
-  const customConsiderations = buildConsiderations({
-    customMaterials: input.customMaterials || [],
-    customResources: input.customResources || [],
-  });
-
-  // Steps estructurados para las cards del frontend.
-  const structuredSteps = scaled.steps.map(structureStep);
-
-  // Resumen adaptado al contexto del usuario (Azure si hay key, template si no).
-  const personalizedSummary = await personalizeSummary(scaled, input);
+  const summary = llmPlan?.summary || scaled.summary;
 
   return {
     method: {
       id: methodId,
       title: scaled.title,
-      summary: personalizedSummary,
+      summary,
       difficulty: scaled.difficulty,
     },
     context: {
@@ -362,14 +382,15 @@ async function generatePlan(input, methodId) {
       situacion: input.situacion || null,
     },
     materials: finalMaterials,
-    steps: structuredSteps,
-    warnings: scaled.warnings,
+    steps: finalSteps,
+    warnings: finalWarnings,
     alternatives: scaled.alternatives,
-    tips: scaled.tips,
+    tips: finalTips,
     customConsiderations,
     estimatedTimeMinutes: scaled.estimatedTimeMinutes,
     personalizedNote: buildPersonalizedNote(input),
-    aiPowered: azure.isConfigured(),
+    aiPowered: aiSource !== 'template',
+    aiSource, // 'azure-gpt4o' | 'template'
     language: lang,
     generatedAt: new Date().toISOString(),
     headline: I18N[lang]?.fallback || I18N.es.fallback,

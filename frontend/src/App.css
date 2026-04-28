@@ -162,3 +162,8 @@ body { font-family: var(--font-body); background: #f0f0f0; }
 
 /* ── Disabled buttons ── */
 .btn-primary:disabled, .btn-secondary:disabled, .action-pill:disabled { opacity: 0.55; cursor: not-allowed; }
+
+/* ── AI mode pill ── */
+.ai-mode-pill { display: block; text-align: center; font-size: 11px; font-weight: 500; padding: 6px 10px; border-radius: 8px; margin-bottom: 12px; line-height: 1.4; }
+.ai-mode-pill.live { background: linear-gradient(135deg, #d4f0ff, #c8f0d8); color: #0f4f3a; border: 1px solid var(--green-accent); }
+.ai-mode-pill.demo { background: #fff8e6; color: #8a6800; border: 1px solid #e0c060; }

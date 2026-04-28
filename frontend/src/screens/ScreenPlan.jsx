@@ -123,6 +123,17 @@ export default function ScreenPlan({ plan, situacion, recursos, onValidar, onKit
           </span>
         </div>
 
+        <div className={`ai-mode-pill ${plan.aiPowered ? 'live' : 'demo'}`}>
+          {plan.aiPowered
+            ? '✨ Personalizado por GPT-4o (Azure OpenAI)'
+            : '📋 Modo demo (sin Azure) — plantilla adaptada a tu contexto'}
+        </div>
+
+        <div className="card" style={{ marginBottom: 12 }}>
+          <div className="section-label">Resumen para tu caso</div>
+          <div style={{ fontSize: 13, color: '#222', lineHeight: 1.5 }}>{plan.method.summary}</div>
+        </div>
+
         {steps.map((step, i) => (
           <StepCard key={i} step={step} index={i} visible={visibleSteps.includes(i)} />
         ))}
