@@ -96,8 +96,16 @@ body { font-family: var(--font-body); background: #f0f0f0; }
 /* ── Step cards ── */
 .step-card { background: white; border-radius: 16px; border: 0.5px solid #ddd; margin-bottom: 12px; overflow: hidden; opacity: 0; transform: translateY(12px); transition: opacity 0.4s ease, transform 0.4s ease; }
 .step-card.visible { opacity: 1; transform: translateY(0); }
-.step-picto-area { background: var(--green-light); padding: 12px; display: flex; align-items: center; justify-content: center; border-bottom: 0.5px solid #d0ead9; }
+.step-picto-area { padding: 16px 12px; display: flex; align-items: center; justify-content: center; border-bottom: 0.5px solid rgba(0,0,0,0.06); transition: background 0.3s ease; }
 .step-picto-area svg { width: 100%; height: 80px; }
+.step-emoji { font-size: 44px; line-height: 1; display: inline-block; transform-origin: center; animation: stepEmojiBob 3s ease-in-out infinite; }
+@keyframes stepEmojiBob {
+  0%, 100% { transform: translateY(0) scale(1); }
+  50%      { transform: translateY(-3px) scale(1.04); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .step-emoji { animation: none; }
+}
 .step-body { padding: 12px 14px; }
 .step-header { display: flex; align-items: center; gap: 8px; margin-bottom: 4px; }
 .step-num { width: 22px; height: 22px; background: var(--green-dark); color: white; border-radius: 6px; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 500; flex-shrink: 0; }

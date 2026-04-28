@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { StatusBar, Header, ProgressBar, LoadingDots } from '../components/PhoneShell';
-import { getPicto } from '../lib/pictos';
+import { getStepIcon } from '../lib/pictos';
 import { generarIlustracion } from '../lib/api';
 import { speak, stop, isSpeaking, isSupported as ttsSupported } from '../lib/tts';
 
@@ -17,12 +17,12 @@ const METHOD_IMAGES = {
 
 function StepCard({ step, index, visible }) {
   const text = `${step.title} ${step.text}`;
+  const { icon, accent } = getStepIcon(text);
   return (
     <div className={`step-card${visible ? ' visible' : ''}`}>
-      <div
-        className="step-picto-area"
-        dangerouslySetInnerHTML={{ __html: getPicto(text) }}
-      />
+      <div className="step-picto-area" style={{ background: accent }}>
+        <span className="step-emoji" aria-hidden="true">{icon}</span>
+      </div>
       <div className="step-body">
         <div className="step-header">
           <div className="step-num">{index + 1}</div>

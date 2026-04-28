@@ -85,6 +85,52 @@ export function getPicto(stepText) {
   return PICTOS.default;
 }
 
+/**
+ * Devuelve un icono específico para el verbo/contenido de cada paso, así
+ * dos pasos del mismo método (p.ej. "añade carbón" vs "añade arena")
+ * tienen iconos visualmente distintos. Las patrones se evalúan de más
+ * específico a más general — el primero que matchea gana.
+ */
+// Patrones de mayor a menor prioridad: el primero que matchea gana, así
+// que los más específicos (incl. "espera N horas" antes de "sol", o
+// "arena fina" antes de "carbón") deben ir arriba.
+const STEP_ICONS = [
+  // Acciones que mencionan tiempo/espera explícito (antes que sol/sun).
+  { match: /(reposa|espera|sediment|durante \d+|al menos \d+\s*(?:hora|min|día)|dej[ae] [^.]+ (?:minuto|hora|día|h\b|min\b))/i, icon: '⏱️', accent: '#fff8e6' },
+
+  // Materiales focales: arena antes que carbón porque el paso "Sobre el
+  // carbón, añade arena" tiene ambos pero el material añadido es la arena.
+  { match: /\barena\b/i, icon: '🟡', accent: '#fff3c0' },
+  { match: /grava|piedras?/i, icon: '🪨', accent: '#e8e0d0' },
+  { match: /carb[oó]n/i, icon: '⚫', accent: '#dad8d2' },
+  { match: /tela|algod[oó]n|pa[ñn]o|gasa|trapo/i, icon: '🧦', accent: '#fff8e6' },
+  { match: /(lej[ií]a|cloro|hipoclor|gota)/i, icon: '🧴', accent: '#d4f0ff' },
+
+  // Acciones de seguridad / outcome
+  { match: /(descart|primer.*minuto|primer.*flujo)/i, icon: '🚫', accent: '#ffe0cc' },
+  { match: /(comprueba|verifica|huele|sabor)/i, icon: '👁️', accent: '#fff8e6' },
+  { match: /(bebe|beber|listo para|consumir|almacen)/i, icon: '✅', accent: '#c8f0d8' },
+
+  // Verbos físicos
+  { match: /(corta|cortar)/i, icon: '✂️', accent: '#ffe6e6' },
+  { match: /hierve|hervir|burbuje|ebullici/i, icon: '🔥', accent: '#ffe0cc' },
+  { match: /(sol\b|solar|exponer|expón|expon|radiac)/i, icon: '☀️', accent: '#fff8c0' },
+  { match: /(destil|condens|gotea)/i, icon: '💧', accent: '#d4f0ff' },
+  { match: /(agita|mezcla|remueve|sacude|oxigen)/i, icon: '🌀', accent: '#d4f0ff' },
+  { match: /(tapa|cubre|sella|cierr)/i, icon: '🔒', accent: '#e8f5ef' },
+  { match: /(coloca|colocar|pon (la|el|una))/i, icon: '📍', accent: '#e8f5ef' },
+  { match: /(filtra|filtrar|pre-filtr)/i, icon: '⏳', accent: '#fff8e6' },
+  { match: /(llena|verter|vierte|trasvasa|recoge)/i, icon: '🪣', accent: '#d4f0ff' },
+];
+
+export function getStepIcon(text) {
+  const t = (text || '').toLowerCase();
+  for (const { match, icon, accent } of STEP_ICONS) {
+    if (match.test(t)) return { icon, accent };
+  }
+  return { icon: '💧', accent: '#e8f5ef' };
+}
+
 export function parseSteps(text) {
   const lines = text.split("\n").filter((l) => l.trim());
   const steps = [];
