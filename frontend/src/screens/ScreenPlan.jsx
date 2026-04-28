@@ -12,7 +12,7 @@ const METHOD_IMAGES = {
   sodis: '/images/methods/sodis.png',
   filtro_carbon: '/images/methods/filtro-carbon.png',
   cloracion: '/images/methods/cloracion.png',
-  // destilacion_solar: '/images/methods/destilacion-solar.png',  // pendiente
+  destilacion_solar: '/images/methods/destilacion-solar.png',
 };
 
 function StepCard({ step, index, visible }) {
