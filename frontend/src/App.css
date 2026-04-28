@@ -167,3 +167,15 @@ body { font-family: var(--font-body); background: #f0f0f0; }
 .ai-mode-pill { display: block; text-align: center; font-size: 11px; font-weight: 500; padding: 6px 10px; border-radius: 8px; margin-bottom: 12px; line-height: 1.4; }
 .ai-mode-pill.live { background: linear-gradient(135deg, #d4f0ff, #c8f0d8); color: #0f4f3a; border: 1px solid var(--green-accent); }
 .ai-mode-pill.demo { background: #fff8e6; color: #8a6800; border: 1px solid #e0c060; }
+
+/* ── Splash hero image (sustituye .splash-droplet) ── */
+.splash-hero-img { width: 200px; height: 200px; border-radius: 24px; object-fit: cover; margin-bottom: 20px; box-shadow: 0 12px 32px rgba(0,0,0,0.25); }
+
+/* ── Water-state cards (validación) ── */
+.water-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 14px; }
+.water-card { background: white; border: 1.5px solid var(--gray-border); border-radius: 14px; padding: 8px; cursor: pointer; transition: all 0.15s; text-align: center; overflow: hidden; }
+.water-card img { width: 100%; aspect-ratio: 1; object-fit: cover; border-radius: 10px; display: block; margin-bottom: 6px; }
+.water-card-label { font-size: 12px; font-weight: 500; color: #333; padding-bottom: 4px; }
+.water-card.selected { border-color: var(--green-dark); box-shadow: 0 0 0 3px rgba(15,79,58,0.15); }
+.water-card.selected.ok { border-color: var(--green-accent); box-shadow: 0 0 0 3px rgba(78,203,141,0.25); }
+.water-card.selected:not(.ok) { border-color: #d68a00; }

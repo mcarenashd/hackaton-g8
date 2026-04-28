@@ -8,3 +8,7 @@ build/
 npm-debug.log*
 .vite/
 coverage/
+
+# Carpeta local de trabajo con imágenes sin renombrar (Designer.png, etc).
+# Las versiones definitivas viven en frontend/public/images/.
+frontend/images/

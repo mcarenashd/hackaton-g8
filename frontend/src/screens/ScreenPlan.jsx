@@ -4,6 +4,17 @@ import { getPicto } from '../lib/pictos';
 import { generarIlustracion } from '../lib/api';
 import { speak, stop, isSpeaking, isSupported as ttsSupported } from '../lib/tts';
 
+// Métodos cubiertos por imágenes generadas con DALL-E 3 (Microsoft Designer).
+// Si el método no está aquí, caemos al endpoint /api/illustration (SVG stub
+// o, con Azure, DALL-E real on-demand).
+const METHOD_IMAGES = {
+  ebullicion: '/images/methods/ebullicion.png',
+  sodis: '/images/methods/sodis.png',
+  filtro_carbon: '/images/methods/filtro-carbon.png',
+  cloracion: '/images/methods/cloracion.png',
+  // destilacion_solar: '/images/methods/destilacion-solar.png',  // pendiente
+};
+
 function StepCard({ step, index, visible }) {
   const text = `${step.title} ${step.text}`;
   return (
@@ -59,6 +70,19 @@ export default function ScreenPlan({ plan, situacion, recursos, onValidar, onKit
   }, []);
 
   async function handleWow() {
+    // Si tenemos una imagen pre-generada con DALL-E para este método,
+    // la mostramos instantáneamente (sin llamada de red).
+    const localImage = METHOD_IMAGES[plan.method.id];
+    if (localImage) {
+      setWowState({
+        status: 'done',
+        url: localImage,
+        caption: 'Ilustración educativa generada con DALL-E 3 (Microsoft Designer).',
+        error: '',
+      });
+      return;
+    }
+    // Fallback: pedimos al backend (SVG stub si no hay Azure, DALL-E si la hay).
     setWowState({ status: 'loading', url: '', caption: '', error: '' });
     try {
       const data = await generarIlustracion({
@@ -125,8 +149,8 @@ export default function ScreenPlan({ plan, situacion, recursos, onValidar, onKit
 
         <div className={`ai-mode-pill ${plan.aiPowered ? 'live' : 'demo'}`}>
           {plan.aiPowered
-            ? '✨ Personalizado por GPT-4o (Azure OpenAI)'
-            : '📋 Modo demo (sin Azure) — plantilla adaptada a tu contexto'}
+            ? '✨ Plan personalizado por GPT-4o · Ilustraciones DALL-E 3'
+            : '🎨 Plan adaptado a tu contexto · Ilustraciones DALL-E 3'}
         </div>
 
         <div className="card" style={{ marginBottom: 12 }}>

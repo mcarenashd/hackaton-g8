@@ -1,17 +1,15 @@
-// screens/ScreenValidacion.jsx
-import { useState } from "react";
-import { StatusBar, Header, ProgressBar } from "../components/PhoneShell";
+import { useState } from 'react';
+import { StatusBar, Header, ProgressBar } from '../components/PhoneShell';
 
 const ESTADOS = [
-  { icon: "✨", label: "Clara y limpia", ok: true },
-  { icon: "☁️", label: "Turbia", ok: false },
-  { icon: "🟡", label: "Con color", ok: false },
-  { icon: "👃", label: "Con olor", ok: false },
+  { id: 'clara', img: '/images/water-states/clara.png', label: 'Clara y limpia', ok: true },
+  { id: 'turbia', img: '/images/water-states/turbia.png', label: 'Turbia', ok: false },
+  { id: 'coloreada', img: '/images/water-states/coloreada.png', label: 'Con color', ok: false },
+  { id: 'olorosa', img: '/images/water-states/olorosa.png', label: 'Con olor', ok: false },
 ];
 
 export default function ScreenValidacion({ onNext, onBack }) {
   const [selected, setSelected] = useState(null);
-
   const selOk = selected !== null && ESTADOS[selected].ok;
 
   return (
@@ -20,33 +18,28 @@ export default function ScreenValidacion({ onNext, onBack }) {
       <Header title="¿Cómo quedó el agua?" step="Paso 4 de 4 · Validación" onBack={onBack} />
       <ProgressBar current={4} total={4} />
       <div className="screen-body">
-        <div className="section-label">Fotografía el resultado</div>
-        <div
-          style={{ background: "#eee", borderRadius: 14, height: 100, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 28, cursor: "pointer", marginBottom: 12, border: "1.5px dashed #bbb" }}
-          onClick={() => setSelected(0)}
-        >
-          📷
-        </div>
+        <div className="section-label">Compara con tu agua</div>
+        <p style={{ fontSize: 12, color: '#555', marginBottom: 12, lineHeight: 1.5 }}>
+          Toca la imagen que más se parezca a tu resultado.
+        </p>
 
-        <div className="divider-or">o describe cómo está</div>
-        <div className="section-label">Estado del agua</div>
-        <div className="choice-row">
+        <div className="water-grid">
           {ESTADOS.map((e, i) => (
             <div
-              key={e.label}
-              className={`choice-btn${selected === i ? " selected" : ""}`}
+              key={e.id}
+              className={`water-card${selected === i ? ' selected' : ''}${e.ok ? ' ok' : ''}`}
               onClick={() => setSelected(i)}
             >
-              <span className="icon">{e.icon}</span>
-              {e.label}
+              <img src={e.img} alt={e.label} />
+              <div className="water-card-label">{e.label}</div>
             </div>
           ))}
         </div>
 
         {selOk && (
-          <div className="result-ok" style={{ display: "flex" }}>
+          <div className="result-ok" style={{ display: 'flex' }}>
             <span style={{ fontSize: 22 }}>✅</span>
-            <span style={{ fontSize: 13, color: "#0f4f3a", fontWeight: 500 }}>
+            <span style={{ fontSize: 13, color: '#0f4f3a', fontWeight: 500 }}>
               ¡Perfecto! Tu agua está lista para consumir.
             </span>
           </div>
@@ -54,11 +47,15 @@ export default function ScreenValidacion({ onNext, onBack }) {
         {selected !== null && !selOk && (
           <div className="warning-badge">
             <span>⚠️</span>
-            <span className="w-text">Repite el proceso o añade un paso de desinfección adicional.</span>
+            <span className="w-text">
+              Repite el proceso o añade un paso de desinfección adicional.
+            </span>
           </div>
         )}
 
-        <button className="btn-primary" onClick={onNext}>Ver kit mínimo →</button>
+        <button className="btn-primary" onClick={onNext} disabled={selected === null}>
+          Ver kit mínimo →
+        </button>
       </div>
     </>
   );

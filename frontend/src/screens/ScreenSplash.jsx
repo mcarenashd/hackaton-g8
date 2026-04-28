@@ -1,18 +1,21 @@
-import { StatusBar } from "../components/PhoneShell";
+import { StatusBar } from '../components/PhoneShell';
 
 export default function ScreenSplash({ onNext }) {
   return (
     <>
       <StatusBar />
       <div className="splash-body">
-        <div className="splash-droplet">
-          <div className="splash-inner" />
-        </div>
+        <img
+          src="/images/hero-splash.png"
+          alt="AquaGuía"
+          className="splash-hero-img"
+        />
         <div className="splash-title">
           Aqua<span>Guía</span>
         </div>
         <div className="splash-tagline">
-          Purifica tu agua con lo que tienes.<br />
+          Purifica tu agua con lo que tienes.
+          <br />
           La IA genera tu plan personalizado.
         </div>
         <div className="splash-sdg">
@@ -22,7 +25,7 @@ export default function ScreenSplash({ onNext }) {
         <button className="splash-btn" onClick={onNext}>
           Comenzar →
         </button>
-        <div className="splash-note">Sin registro · Funciona sin internet</div>
+        <div className="splash-note">Sin registro · Ilustraciones DALL-E 3</div>
       </div>
     </>
   );
