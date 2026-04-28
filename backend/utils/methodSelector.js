@@ -1,6 +1,12 @@
+const { extractFlags } = require('./customResources');
+
 /**
  * Heurística sencilla para elegir un método de potabilización según los
  * recursos del usuario. El orden refleja una jerarquía de eficacia/seguridad.
+ *
+ * Tiene en cuenta tanto los checkboxes (`materials`/`resources`) como los
+ * textos libres (`customMaterials`/`customResources`) — estos últimos se
+ * convierten en flags canónicos por keyword matching.
  *
  * Métodos soportados:
  *  - "ebullicion": fuego + olla
@@ -9,8 +15,21 @@
  *  - "cloracion": cloro/lejía sin perfume
  *  - "destilacion_solar": sol + plástico + recipiente (último recurso)
  */
-function selectMethod({ materials = [], resources = [] }) {
-  const has = (key) => materials.includes(key) || resources.includes(key);
+function selectMethod(input) {
+  const {
+    materials = [],
+    resources = [],
+    customMaterials = [],
+    customResources = [],
+  } = input;
+
+  const customFlags = new Set([
+    ...extractFlags(customMaterials),
+    ...extractFlags(customResources),
+  ]);
+
+  const has = (key) =>
+    materials.includes(key) || resources.includes(key) || customFlags.has(key);
 
   if (has('fuego') && has('olla')) return 'ebullicion';
   if (has('sol') && has('botellas_plastico')) return 'sodis';

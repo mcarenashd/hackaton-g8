@@ -13,11 +13,13 @@
  *   warnings: string[],
  *   alternatives: string[],
  *   tips: string[],
+ *   customConsiderations: string[],
  *   estimatedTimeMinutes: number,
  *   personalizedNote: string,
  *   language: string
  * }
  */
+const { buildConsiderations } = require('../utils/customResources');
 
 const TEMPLATES = {
   ebullicion: {
@@ -274,6 +276,12 @@ async function generatePlan(input, methodId) {
     );
   }
 
+  // Consejos específicos por cada item custom que aportó el usuario.
+  const customConsiderations = buildConsiderations({
+    customMaterials: input.customMaterials || [],
+    customResources: input.customResources || [],
+  });
+
   return {
     method: {
       id: methodId,
@@ -299,6 +307,7 @@ async function generatePlan(input, methodId) {
     warnings: scaled.warnings,
     alternatives: scaled.alternatives,
     tips: scaled.tips,
+    customConsiderations,
     estimatedTimeMinutes: scaled.estimatedTimeMinutes,
     personalizedNote: buildPersonalizedNote(input),
     language: lang,

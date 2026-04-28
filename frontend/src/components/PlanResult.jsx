@@ -41,6 +41,7 @@ export default function PlanResult({ plan, onRestart }) {
     warnings,
     alternatives,
     tips = [],
+    customConsiderations = [],
     estimatedTimeMinutes,
     headline,
     context,
@@ -119,6 +120,24 @@ export default function PlanResult({ plan, onRestart }) {
             ))}
           </ul>
         </Section>
+
+        {customConsiderations.length > 0 && (
+          <Section title="Cómo usar tus recursos extra" icon="🎒">
+            <p className="mb-3 text-sm text-slate-500">
+              Consejos concretos para aprovechar lo que añadiste tú:
+            </p>
+            <ul className="space-y-2">
+              {customConsiderations.map((c, i) => (
+                <li
+                  key={i}
+                  className="rounded-lg border border-brand-200 bg-brand-50/60 px-4 py-3 text-brand-900"
+                >
+                  {c}
+                </li>
+              ))}
+            </ul>
+          </Section>
+        )}
 
         {alternatives?.length > 0 && (
           <Section title="Alternativas si te falta algo" icon="🔄">

@@ -104,6 +104,19 @@ export function downloadPlanPDF(plan) {
     y += 4;
   }
 
+  // Consideraciones específicas para tus recursos extra
+  if (plan.customConsiderations?.length) {
+    writeWrapped('Cómo usar tus recursos extra', {
+      size: 13,
+      bold: true,
+      color: [40, 125, 138],
+    });
+    plan.customConsiderations.forEach((c) =>
+      writeWrapped(`• ${c}`, { size: 11, color: [40, 100, 110], gap: 1 })
+    );
+    y += 4;
+  }
+
   // Tips
   if (plan.tips?.length) {
     writeWrapped('Tips útiles', { size: 13, bold: true, color: [44, 126, 63] });
