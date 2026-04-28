@@ -1225,13 +1225,14 @@ input.field, textarea.field { display: block; }
   to   { opacity: 1; transform: scale(1); }
 }
 
-/* Splash hero image (DALL-E) */
+/* Splash hero image (DALL-E) — solo ocupa lo necesario, no consume todo el sobrante */
 .splash-droplet-wrap {
+  flex: 0 0 auto !important;
   display: flex !important;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  margin: 0 !important;
+  margin: 18px 0 14px !important;
 }
 .splash-droplet-wrap img.hero {
   width: 180px; height: 180px;
@@ -1263,6 +1264,33 @@ input.field, textarea.field { display: block; }
 .splash .splash-title { font-size: 48px !important; margin-bottom: 10px !important; }
 .splash .splash-tagline { font-size: 14px !important; margin-bottom: 16px !important; }
 .splash .sdg-pills { margin-bottom: 16px !important; }
+
+/* Camera card — más respiración + contraste claro */
+.camera-card {
+  padding: 16px 18px !important;
+  margin-top: 4px;
+}
+.camera-card .cam-row { gap: 12px; flex-wrap: nowrap; }
+.camera-card .cam-l {
+  flex: 1; min-width: 0;
+  display: flex; align-items: center; gap: 12px;
+}
+.camera-card .cam-l > div { min-width: 0; flex: 1; }
+.camera-card .cam-title {
+  color: white;
+  font-weight: 500;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.camera-card .cam-sub { color: rgba(255,255,255,0.78); }
+.camera-card .cam-cta {
+  flex-shrink: 0;
+  background: rgba(255,255,255,0.06);
+  padding: 6px 10px;
+  border-radius: 999px;
+  border: 1px solid rgba(255,255,255,0.14);
+}
 
 /* Cámara con input file oculto */
 .camera-card input[type="file"] { display: none; }
