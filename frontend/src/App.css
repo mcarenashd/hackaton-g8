@@ -1265,10 +1265,15 @@ input.field, textarea.field { display: block; }
 .splash .splash-tagline { font-size: 14px !important; margin-bottom: 16px !important; }
 .splash .sdg-pills { margin-bottom: 16px !important; }
 
-/* Camera card — más respiración + contraste claro */
+/* Camera card — display:block fuerza al <label> a renderizar como contenedor;
+   sin nowrap para que el título no se corte con ellipsis. */
+label.camera-card,
 .camera-card {
+  display: block !important;
   padding: 16px 18px !important;
   margin-top: 4px;
+  width: 100%;
+  text-align: left;
 }
 .camera-card .cam-row { gap: 12px; flex-wrap: nowrap; }
 .camera-card .cam-l {
@@ -1279,9 +1284,7 @@ input.field, textarea.field { display: block; }
 .camera-card .cam-title {
   color: white;
   font-weight: 500;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  line-height: 1.2;
 }
 .camera-card .cam-sub { color: rgba(255,255,255,0.78); }
 .camera-card .cam-cta {
@@ -1290,6 +1293,7 @@ input.field, textarea.field { display: block; }
   padding: 6px 10px;
   border-radius: 999px;
   border: 1px solid rgba(255,255,255,0.14);
+  white-space: nowrap;
 }
 
 /* Cámara con input file oculto */
