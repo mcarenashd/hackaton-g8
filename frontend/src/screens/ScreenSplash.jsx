@@ -14,6 +14,9 @@ export default function ScreenSplash({ onNext }) {
 
         <div className="splash-droplet-wrap">
           <img src="/images/hero-splash.png" alt="AquaGuía" className="hero" />
+          <div className="hero-credit">
+            <CopilotMark size={10} /> &nbsp;Generado con Microsoft Designer · DALL·E 3
+          </div>
         </div>
 
         <div className="splash-title">

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import {
   StatusBar,
   AppHeader,
@@ -6,6 +6,7 @@ import {
   EmojiTile,
   CopilotMark,
 } from '../components/PhoneShell';
+import { fileToDataUrl } from '../lib/camera';
 
 const ESTADOS = [
   { id: 'clara', image: '/images/water-states/clara.png', label: 'Clara y limpia', ok: true },
@@ -16,7 +17,25 @@ const ESTADOS = [
 
 export default function ScreenValidacion({ onNext, onBack }) {
   const [sel, setSel] = useState(null);
+  const [analyzing, setAnalyzing] = useState(false);
+  const fileRef = useRef(null);
   const ok = sel !== null && ESTADOS[sel].ok;
+
+  async function handlePhoto(e) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setAnalyzing(true);
+    try {
+      // Convertimos a base64 para que esté listo si conectamos Azure.
+      // Por ahora, demo positiva: tras 1.5 s seleccionamos "Clara".
+      await fileToDataUrl(file);
+      await new Promise((r) => setTimeout(r, 1500));
+      setSel(0);
+    } finally {
+      setAnalyzing(false);
+      if (fileRef.current) fileRef.current.value = '';
+    }
+  }
 
   return (
     <>
@@ -32,7 +51,15 @@ export default function ScreenValidacion({ onNext, onBack }) {
           <span className="lbl">📷 Verificación con foto</span>
           <span className="hint">opcional</span>
         </div>
-        <div className="photo-drop">
+        <label className="photo-drop">
+          <input
+            ref={fileRef}
+            type="file"
+            accept="image/*"
+            capture="environment"
+            onChange={handlePhoto}
+            style={{ display: 'none' }}
+          />
           <div className="ph-icon" style={{ fontSize: 22 }}>📷</div>
           <div className="body-m" style={{ fontWeight: 500 }}>
             Fotografía el resultado
@@ -40,7 +67,16 @@ export default function ScreenValidacion({ onNext, onBack }) {
           <div className="body-s">
             <CopilotMark size={10} /> &nbsp;Copilot Vision compara turbidez
           </div>
-        </div>
+        </label>
+
+        {analyzing && (
+          <div className="ai-bar" style={{ marginTop: 10 }}>
+            <div className="pulse" />
+            <span>
+              <CopilotMark size={10} /> &nbsp;Copilot Vision analizando turbidez…
+            </span>
+          </div>
+        )}
 
         <div className="divider-or">o compara con estas referencias</div>
 
@@ -77,9 +113,14 @@ export default function ScreenValidacion({ onNext, onBack }) {
         )}
 
         <div className="spacer-16" />
-        <button className="btn btn-primary" onClick={onNext} disabled={sel === null}>
+        <button className="btn btn-primary" onClick={onNext}>
           Ver kit mínimo →
         </button>
+        {sel === null && !analyzing && (
+          <div className="hint-text">
+            💡 Toma una foto o elige un estado para ver el diagnóstico
+          </div>
+        )}
       </div>
     </>
   );

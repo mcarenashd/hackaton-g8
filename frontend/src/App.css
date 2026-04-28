@@ -1226,6 +1226,11 @@ input.field, textarea.field { display: block; }
 }
 
 /* Splash hero image (DALL-E) */
+.splash-droplet-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
 .splash-droplet-wrap img.hero {
   width: 220px; height: 220px;
   border-radius: 28px;
@@ -1234,6 +1239,17 @@ input.field, textarea.field { display: block; }
     0 0 80px rgba(46, 174, 200, 0.4),
     0 24px 48px rgba(0, 0, 0, 0.45);
   animation: heroFloat 4s ease-in-out infinite;
+}
+.splash-droplet-wrap .hero-credit {
+  margin-top: 14px;
+  font-family: var(--font-mono);
+  font-size: 9.5px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: rgba(255,255,255,0.45);
+  display: inline-flex;
+  align-items: center;
+  text-align: center;
 }
 @keyframes heroFloat {
   0%, 100% { transform: translateY(0); }
