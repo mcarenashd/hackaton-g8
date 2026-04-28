@@ -1,7 +1,7 @@
 {
-  "name": "potabiliza-facil-backend",
+  "name": "aquaguia-backend",
   "version": "1.0.0",
-  "description": "API para generar planes personalizados de potabilización de agua",
+  "description": "API de AquaGuía: planes de potabilización con Microsoft Copilot / Azure OpenAI.",
   "main": "server.js",
   "type": "commonjs",
   "scripts": {
@@ -10,6 +10,7 @@
   },
   "dependencies": {
     "cors": "^2.8.5",
+    "dotenv": "^16.4.5",
     "express": "^4.19.2"
   }
 }

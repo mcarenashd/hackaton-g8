@@ -20,6 +20,7 @@
  * }
  */
 const { buildConsiderations } = require('../utils/customResources');
+const azure = require('./azureOpenAI');
 
 const TEMPLATES = {
   ebullicion: {
@@ -256,9 +257,60 @@ function buildPersonalizedNote(input) {
   return fragments.join(' ');
 }
 
+/**
+ * Convierte un paso (string) en `{title, text, time}` para que el frontend
+ * pueda mostrarlo como tarjeta. El título es la primera frase corta; el
+ * texto es el resto; el tiempo se extrae con regex si aparece.
+ */
+function structureStep(s) {
+  const timeMatch = s.match(/(\d+\s*(?:min|minutos?|hs?|horas?|días?)\b)/i);
+  const time = timeMatch ? timeMatch[1] : '';
+  const firstDot = s.indexOf('.');
+  let title, text;
+  if (firstDot > 0 && firstDot < 70) {
+    title = s.slice(0, firstDot).trim();
+    text = s.slice(firstDot + 1).trim();
+  } else if (s.length <= 50) {
+    title = s.trim();
+    text = '';
+  } else {
+    title = s.slice(0, 50).trim() + '…';
+    text = s;
+  }
+  return { title, text, time };
+}
+
+/**
+ * Si hay key de Azure OpenAI, pide a GPT-4o que adapte el `summary` al
+ * contexto del usuario (urgencia, nº personas). Si falla, mantenemos
+ * el del template — la seguridad de los pasos NO se delega al LLM.
+ */
+async function personalizeSummary(scaled, input) {
+  if (!azure.isConfigured()) return scaled.summary;
+  const sit = input.situacion || {};
+  try {
+    const out = await azure.chat({
+      system:
+        'Eres AquaGuía, un asistente de potabilización para comunidades vulnerables. ' +
+        'Hablas español muy claro, frases simples, sin tecnicismos. Nunca inventes pasos ni cifras de seguridad.',
+      user:
+        `Adapta este resumen al contexto del usuario, en UNA sola frase corta y directa, sin intro ni cierre.\n\n` +
+        `Método: ${scaled.title}\n` +
+        `Resumen base: ${scaled.summary}\n` +
+        `Contexto: ${sit.personas || 'persona'}, urgencia "${sit.urgencia || 'normal'}", ` +
+        `fuente "${input.customSource || input.waterSource}".`,
+      maxTokens: 120,
+    });
+    if (out && out.trim().length > 10) return out.trim().replace(/^"|"$/g, '');
+  } catch (err) {
+    console.warn('[aiService] Azure personalization failed:', err.message);
+  }
+  return scaled.summary;
+}
+
 async function generatePlan(input, methodId) {
-  // Simulamos latencia de un LLM real.
-  await new Promise((r) => setTimeout(r, 350));
+  // Pequeña latencia para que el spinner se vea natural.
+  await new Promise((r) => setTimeout(r, 250));
 
   const base = TEMPLATES[methodId] || TEMPLATES.filtro_carbon;
   const scaled = scaleByLiters(base, input.dailyLiters);
@@ -268,7 +320,7 @@ async function generatePlan(input, methodId) {
   const sourceWarning = SOURCE_WARNINGS[input.waterSource];
   if (sourceWarning) scaled.warnings.unshift(sourceWarning);
 
-  // Si el usuario aportó materiales custom, los reflejamos en la lista.
+  // Materiales aportados por el usuario marcados explícitamente.
   const finalMaterials = [...scaled.materials];
   if (input.customMaterials?.length) {
     finalMaterials.push(
@@ -276,17 +328,23 @@ async function generatePlan(input, methodId) {
     );
   }
 
-  // Consejos específicos por cada item custom que aportó el usuario.
+  // Consejos específicos por cada item custom.
   const customConsiderations = buildConsiderations({
     customMaterials: input.customMaterials || [],
     customResources: input.customResources || [],
   });
 
+  // Steps estructurados para las cards del frontend.
+  const structuredSteps = scaled.steps.map(structureStep);
+
+  // Resumen adaptado al contexto del usuario (Azure si hay key, template si no).
+  const personalizedSummary = await personalizeSummary(scaled, input);
+
   return {
     method: {
       id: methodId,
       title: scaled.title,
-      summary: scaled.summary,
+      summary: personalizedSummary,
       difficulty: scaled.difficulty,
     },
     context: {
@@ -301,15 +359,17 @@ async function generatePlan(input, methodId) {
       customMaterials: input.customMaterials || [],
       customResources: input.customResources || [],
       customSource: input.customSource || '',
+      situacion: input.situacion || null,
     },
     materials: finalMaterials,
-    steps: scaled.steps,
+    steps: structuredSteps,
     warnings: scaled.warnings,
     alternatives: scaled.alternatives,
     tips: scaled.tips,
     customConsiderations,
     estimatedTimeMinutes: scaled.estimatedTimeMinutes,
     personalizedNote: buildPersonalizedNote(input),
+    aiPowered: azure.isConfigured(),
     language: lang,
     generatedAt: new Date().toISOString(),
     headline: I18N[lang]?.fallback || I18N.es.fallback,
