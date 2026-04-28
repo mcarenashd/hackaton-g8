@@ -1,6 +1,10 @@
+import { useState } from 'react';
 import { StatusBar, CopilotMark } from '../components/PhoneShell';
+import ShareModal from '../components/ShareModal';
 
 export default function ScreenSplash({ onNext }) {
+  const [shareOpen, setShareOpen] = useState(false);
+
   return (
     <>
       <StatusBar onDark />
@@ -9,7 +13,14 @@ export default function ScreenSplash({ onNext }) {
           <span className="ey">
             <CopilotMark size={11} /> &nbsp;CON MICROSOFT COPILOT
           </span>
-          <span className="ver">v1.0</span>
+          <button
+            className="splash-share-btn"
+            onClick={() => setShareOpen(true)}
+            aria-label="Compartir AquaGuía"
+            type="button"
+          >
+            📲 Compartir
+          </button>
         </div>
 
         <div className="splash-droplet-wrap">
@@ -45,6 +56,8 @@ export default function ScreenSplash({ onNext }) {
           <CopilotMark size={11} /> &nbsp; HECHO CON COPILOT · AZURE OPENAI
         </div>
       </div>
+
+      <ShareModal open={shareOpen} onClose={() => setShareOpen(false)} />
     </>
   );
 }

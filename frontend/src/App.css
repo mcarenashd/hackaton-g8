@@ -1265,6 +1265,25 @@ input.field, textarea.field { display: block; }
 .splash .splash-tagline { font-size: 14px !important; margin-bottom: 16px !important; }
 .splash .sdg-pills { margin-bottom: 16px !important; }
 
+/* Splash share button — donde antes estaba 'v1.0' */
+.splash-share-btn {
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  letter-spacing: 0.05em;
+  color: rgba(255,255,255,0.7);
+  background: rgba(255,255,255,0.06);
+  border: 1px solid rgba(255,255,255,0.14);
+  padding: 5px 10px;
+  border-radius: 999px;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.splash-share-btn:hover {
+  color: white;
+  background: rgba(255,255,255,0.10);
+  border-color: rgba(255,255,255,0.28);
+}
+
 /* Camera card — display:block fuerza al <label> a renderizar como contenedor;
    sin nowrap para que el título no se corte con ellipsis. */
 label.camera-card,
@@ -1310,6 +1329,98 @@ label.camera-card,
   background: var(--aqua-soft);
   border-radius: var(--r-sm);
   padding: 10px 12px;
+}
+
+/* ─────────────────────────────────────────────
+   SHARE MODAL — QR para que la audiencia escanee la demo
+   ───────────────────────────────────────────── */
+.share-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  background: rgba(6, 15, 23, 0.78);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  display: grid;
+  place-items: center;
+  padding: 20px;
+  animation: shareFadeIn 0.2s ease-out;
+}
+@keyframes shareFadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+.share-card {
+  position: relative;
+  width: 100%;
+  max-width: 360px;
+  background: var(--paper);
+  color: var(--ink);
+  border-radius: 24px;
+  padding: 28px 26px;
+  text-align: center;
+  box-shadow:
+    0 30px 80px rgba(0, 0, 0, 0.5),
+    0 0 0 1px rgba(255, 255, 255, 0.05);
+  animation: shareCardIn 0.25s ease-out;
+}
+@keyframes shareCardIn {
+  from { opacity: 0; transform: translateY(8px) scale(0.98); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+.share-close {
+  position: absolute;
+  top: 12px; right: 14px;
+  width: 32px; height: 32px;
+  border: none;
+  background: transparent;
+  color: var(--muted);
+  font-size: 24px;
+  line-height: 1;
+  cursor: pointer;
+  border-radius: 50%;
+  transition: background 0.15s;
+}
+.share-close:hover { background: var(--line); color: var(--ink); }
+.share-eyebrow {
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--mid);
+  display: inline-flex;
+  align-items: center;
+  margin-bottom: 6px;
+}
+.share-title {
+  font-family: var(--font-display);
+  font-size: 36px;
+  line-height: 1;
+  letter-spacing: -0.02em;
+  margin-bottom: 18px;
+}
+.share-title em { font-style: italic; color: var(--mid); }
+.share-qr-wrap {
+  display: grid;
+  place-items: center;
+  padding: 16px;
+  background: white;
+  border-radius: 16px;
+  border: 1px solid var(--line);
+  margin-bottom: 14px;
+}
+.share-qr-wrap svg { display: block; }
+.share-url {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--muted);
+  word-break: break-all;
+  margin-bottom: 10px;
+}
+.share-foot {
+  font-size: 12px;
+  color: var(--muted);
+  line-height: 1.5;
 }
 
 /* Reduce motion */

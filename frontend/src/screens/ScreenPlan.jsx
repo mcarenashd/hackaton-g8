@@ -6,6 +6,7 @@ import {
   Dots,
   CopilotMark,
 } from '../components/PhoneShell';
+import ShareModal from '../components/ShareModal';
 import { getStepIcon } from '../lib/pictos';
 import { generarIlustracion } from '../lib/api';
 import { speak, stop, isSpeaking, isSupported as ttsSupported } from '../lib/tts';
@@ -48,6 +49,7 @@ export default function ScreenPlan({ plan, situacion, recursos, onValidar, onKit
   const [visible, setVisible] = useState([]);
   const [wow, setWow] = useState({ status: 'idle', url: '', caption: '', error: '' });
   const [speaking, setSpeaking] = useState(false);
+  const [shareOpen, setShareOpen] = useState(false);
   const speakInterval = useRef(null);
 
   const steps = plan?.steps || [];
@@ -271,12 +273,20 @@ export default function ScreenPlan({ plan, situacion, recursos, onValidar, onKit
           <button className="btn-pill" onClick={onValidar}>
             🧪 Validar agua
           </button>
+          <button className="btn-pill" onClick={() => setShareOpen(true)}>
+            📲 Compartir
+          </button>
+          <button className="btn-pill" onClick={onKit}>
+            🛒 Kit mínimo
+          </button>
         </div>
         <div className="spacer-12" />
         <button className="btn btn-primary" onClick={onKit}>
           Ver mi kit mínimo →
         </button>
       </div>
+
+      <ShareModal open={shareOpen} onClose={() => setShareOpen(false)} />
     </>
   );
 }
